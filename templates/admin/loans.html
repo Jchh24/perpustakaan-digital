@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Transaksi Peminjaman - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 700;">Daftar Transaksi Peminjaman Buku</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Pantau siapa yang meminjam buku, durasi batas waktu, dan proses pengembalian</p>
+    </div>
+
+    <div style="display: flex; gap: 0.5rem;">
+      <a href="/admin/loans?status_filter=all" class="btn {% if status_filter == 'all' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Semua</a>
+      <a href="/admin/loans?status_filter=borrowed" class="btn {% if status_filter == 'borrowed' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Sedang Dipinjam</a>
+      <a href="/admin/loans?status_filter=returned" class="btn {% if status_filter == 'returned' %}btn-primary{% else %}btn-secondary{% endif %} btn-sm">Selesai</a>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>No</th>
+          <th>Peminjam</th>
+          <th>Buku</th>
+          <th>Tanggal Pinjam</th>
+          <th>Jatuh Tempo</th>
+          <th>Status</th>
+          <th>Denda</th>
+          <th style="text-align: right;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for loan in loans %}
+          <tr>
+            <td>#{{ loan.id }}</td>
+            <td>
+              <strong>{{ loan.user.full_name }}</strong>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">@{{ loan.user.username }} ({{ loan.user.email }})</div>
+            </td>
+            <td>
+              <a href="/books/{{ loan.book.id }}" style="font-weight: 600; color: inherit;">{{ loan.book.title }}</a>
+              <div style="font-size: 0.8rem; color: var(--text-muted);">{{ loan.book.location }}</div>
+            </td>
+            <td>{{ loan.loan_date.strftime('%d-%m-%Y %H:%M') }}</td>
+            <td>{{ loan.due_date.strftime('%d-%m-%Y') }}</td>
+            <td>
+              {% if loan.status == 'borrowed' %}
+                <span class="stock-tag stock-in">Dipinjam</span>
+              {% else %}
+                <span class="stock-tag" style="background: #e2e8f0; color: #334155;">Dikembalikan</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if loan.fine_amount > 0 %}
+                <span style="color: var(--danger); font-weight: 600;">Rp {{ "{:,}".format(loan.fine_amount) }}</span>
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              {% if loan.status == 'borrowed' %}
+                <form method="POST" action="/loans/{{ loan.id }}/return" onsubmit="return confirm('Konfirmasi pengembalian buku ini?');" style="margin: 0; display: inline;">
+                  <button type="submit" class="btn btn-success btn-sm">Terima Kembali</button>
+                </form>
+              {% else %}
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Selesai {{ loan.return_date.strftime('%d-%m-%Y') if loan.return_date else '' }}</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

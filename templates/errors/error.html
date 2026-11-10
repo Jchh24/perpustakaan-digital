@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Terjadi Kesalahan - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 3rem auto; text-align: center; padding: 2.5rem 1.5rem;">
+  <div style="font-size: 3rem; margin-bottom: 0.5rem;">⚠️</div>
+  <h1 style="font-size: 1.6rem; font-weight: 700; margin-bottom: 0.75rem;">{{ title or "Terjadi Kesalahan" }}</h1>
+  <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">
+    {{ detail or "Permintaan tidak dapat diproses saat ini. Sistem telah mencatat insiden ini secara otomatis." }}
+  </p>
+
+  <div style="background: #f1f5f9; border: 1px dashed #cbd5e1; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+    <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.25rem;">KODE REFERENSI KESALAHAN (ADMIN):</div>
+    <div style="font-family: monospace; font-size: 1.25rem; font-weight: 700; color: var(--danger); letter-spacing: 1px;">
+      {{ error_code }}
+    </div>
+    <div style="font-size: 0.75rem; color: #64748b; margin-top: 0.35rem;">
+      Silakan berikan kode referensi ini kepada administrator jika kendala terus berulang.
+    </div>
+  </div>
+
+  <div style="display: flex; justify-content: center; gap: 0.75rem;">
+    <a href="/" class="btn btn-primary">Kembali ke Beranda</a>
+    <a href="javascript:history.back()" class="btn btn-secondary">Halaman Sebelumnya</a>
+  </div>
+</div>
+{% endblock %}

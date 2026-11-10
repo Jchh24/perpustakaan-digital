@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Profil Akun - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto;">
+  <h2 style="margin-bottom: 1rem;">Informasi Akun</h2>
+
+  <div style="margin-bottom: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+    <p><strong>Nama Pengguna:</strong> {{ current_user.username }}</p>
+    <p><strong>Email:</strong> {{ current_user.email }}</p>
+    <p><strong>Peran:</strong> <span class="badge-role {{ current_user.role }}">{{ current_user.role }}</span></p>
+    <p><strong>Status:</strong> {% if current_user.is_active %}<span style="color: green;">Aktif</span>{% else %}<span style="color: red;">Nonaktif</span>{% endif %}</p>
+  </div>
+
+  <h3 style="margin-bottom: 1rem;">Perbarui Profil</h3>
+  <form method="POST" action="/auth/profile">
+    <div class="form-group">
+      <label class="form-label" for="full_name">Nama Lengkap</label>
+      <input type="text" id="full_name" name="full_name" class="form-control" value="{{ current_user.full_name }}" required>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="new_password">Kata Sandi Baru (Kosongkan jika tidak diubah)</label>
+      <input type="password" id="new_password" name="new_password" class="form-control" placeholder="••••••••">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="confirm_password">Konfirmasi Kata Sandi Baru</label>
+      <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="••••••••">
+    </div>
+
+    <div style="display: flex; gap: 0.75rem;">
+      <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      <a href="/" class="btn btn-secondary">Kembali</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

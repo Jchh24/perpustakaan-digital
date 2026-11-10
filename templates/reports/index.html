@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}Laporan Perpustakaan - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="stats-grid no-print">
+  <div class="stat-card">
+    <div class="stat-label">Total Judul Buku</div>
+    <div class="stat-val">{{ total_books }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Anggota</div>
+    <div class="stat-val">{{ total_users }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Sedang Dipinjam</div>
+    <div class="stat-val">{{ active_loans }}</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Denda Terkumpul</div>
+    <div class="stat-val" style="font-size: 1.4rem;">Rp {{ "{:,}".format(total_fines) }}</div>
+  </div>
+</div>
+
+<div class="card no-print">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+    <h2 style="font-size: 1.3rem;">Filter Laporan</h2>
+    <button class="btn btn-primary" onclick="window.print()">Cetak Laporan</button>
+  </div>
+
+  <form method="GET" action="/reports" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+    <div style="flex: 1; min-width: 180px;">
+      <label class="form-label" for="report_type">Jenis Laporan</label>
+      <select name="report_type" id="report_type" class="form-control" onchange="this.form.submit()">
+        <option value="loans" {% if report_type == 'loans' %}selected{% endif %}>Laporan Peminjaman Buku</option>
+        <option value="returns" {% if report_type == 'returns' %}selected{% endif %}>Laporan Pengembalian Buku</option>
+        <option value="fines" {% if report_type == 'fines' %}selected{% endif %}>Laporan Denda Keterlambatan</option>
+        <option value="books" {% if report_type == 'books' %}selected{% endif %}>Laporan Master Katalog Buku</option>
+      </select>
+    </div>
+
+    {% if report_type != 'books' %}
+      <div style="flex: 1; min-width: 150px;">
+        <label class="form-label" for="start_date">Dari Tanggal</label>
+        <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <label class="form-label" for="end_date">Sampai Tanggal</label>
+        <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+      </div>
+    {% endif %}
+
+    <div>
+      <button type="submit" class="btn btn-secondary" style="height: 42px;">Terapkan Filter</button>
+      <a href="/reports" class="btn btn-secondary" style="height: 42px;">Reset</a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div style="text-align: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 2px solid var(--border);">
+    <h1 style="font-size: 1.5rem; text-transform: uppercase;">
+      {% if report_type == 'loans' %}
+        LAPORAN TRANSAKSI PEMINJAMAN BUKU
+      {% elif report_type == 'returns' %}
+        LAPORAN PENGEMBALIAN BUKU
+      {% elif report_type == 'fines' %}
+        LAPORAN REKAPITULASI DENDA KETERLAMBATAN
+      {% elif report_type == 'books' %}
+        LAPORAN MASTER DATA KOLEKSI BUKU
+      {% endif %}
+    </h1>
+    <p style="color: var(--text-muted); font-size: 0.9rem;">Perpustakaan Digital — Dicetak pada: {{ now if now else 'Hari Ini' }}</p>
+  </div>
+
+  <div class="table-responsive">
+    {% if report_type == 'books' %}
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Judul Buku</th>
+            <th>ISBN</th>
+            <th>Pengarang</th>
+            <th>Penerbit & Tahun</th>
+            <th>Kategori</th>
+            <th>Lokasi Rak</th>
+            <th>Stok (Tersedia / Total)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in books_data %}
+            <tr>
+              <td>{{ loop.index }}</td>
+              <td><strong>{{ b.title }}</strong></td>
+              <td><code>{{ b.isbn }}</code></td>
+              <td>{{ b.author }}</td>
+              <td>{{ b.publisher }} ({{ b.publication_year }})</td>
+              <td>{{ b.category.name if b.category else '-' }}</td>
+              <td>{{ b.location }}</td>
+              <td>{{ b.available_stock }} / {{ b.stock }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <table>
+        <thead>
+          <tr>
+            <th>No Transaksi</th>
+            <th>Nama Anggota</th>
+            <th>Judul Buku</th>
+            <th>Tanggal Pinjam</th>
+            <th>Batas Pengembalian</th>
+            <th>Tanggal Kembali</th>
+            <th>Status</th>
+            <th>Denda</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for l in loans_data %}
+            <tr>
+              <td>#TRX-{{ l.id }}</td>
+              <td>
+                <strong>{{ l.user.full_name }}</strong>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">{{ l.user.username }}</div>
+              </td>
+              <td>{{ l.book.title }}</td>
+              <td>{{ l.loan_date.strftime('%d-%m-%Y') }}</td>
+              <td>{{ l.due_date.strftime('%d-%m-%Y') }}</td>
+              <td>{{ l.return_date.strftime('%d-%m-%Y') if l.return_date else '-' }}</td>
+              <td>
+                {% if l.status == 'borrowed' %}
+                  <span class="stock-tag stock-in">Dipinjam</span>
+                {% else %}
+                  <span class="stock-tag" style="background: #e2e8f0; color: #334155;">Dikembalikan</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if l.fine_amount > 0 %}
+                  <strong style="color: var(--danger);">Rp {{ "{:,}".format(l.fine_amount) }}</strong>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  </div>
+
+  <div style="margin-top: 3rem; display: flex; justify-content: flex-end; text-align: center;">
+    <div style="min-width: 200px;">
+      <p style="font-size: 0.9rem; margin-bottom: 4rem;">Penanggung Jawab Perpustakaan,</p>
+      <p style="font-weight: 700; text-decoration: underline;">{{ current_user.full_name }}</p>
+      <p style="font-size: 0.8rem; color: var(--text-muted);">NIP. 19850412 201001 1 002</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

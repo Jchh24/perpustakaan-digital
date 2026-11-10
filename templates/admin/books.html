@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Master Buku - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 700;">Manajemen Master Data Buku</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Kelola daftar katalog, stok buku, dan penempatan fisik di perpustakaan</p>
+    </div>
+    <button class="btn btn-primary" onclick="openModal('addBookModal')">+ Tambah Buku Baru</button>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Cover & Judul</th>
+          <th>ISBN</th>
+          <th>Kategori</th>
+          <th>Lokasi Rak</th>
+          <th>Stok (Tersedia / Total)</th>
+          <th style="text-align: right;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for book in books %}
+          <tr>
+            <td>
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <img src="{{ book.cover_image }}" alt="{{ book.title }}" style="width: 38px; height: 50px; object-fit: cover; border-radius: 4px;" onerror="this.src='/static/images/no_cover.svg';">
+                <div>
+                  <a href="/books/{{ book.id }}" style="font-weight: 600; color: inherit;">{{ book.title }}</a>
+                  <div style="font-size: 0.8rem; color: var(--text-muted);">{{ book.author }} ({{ book.publication_year }})</div>
+                </div>
+              </div>
+            </td>
+            <td><code>{{ book.isbn }}</code></td>
+            <td>{{ book.category.name if book.category else '-' }}</td>
+            <td>{{ book.location }}</td>
+            <td>
+              <strong>{{ book.available_stock }}</strong> / {{ book.stock }}
+            </td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-secondary btn-sm" onclick='openEditBookModal({
+                  id: {{ book.id|tojson }},
+                  title: {{ book.title|tojson }},
+                  author: {{ book.author|tojson }},
+                  publisher: {{ book.publisher|tojson }},
+                  isbn: {{ book.isbn|tojson }},
+                  publication_year: {{ book.publication_year }},
+                  location: {{ book.location|tojson }},
+                  stock: {{ book.stock }},
+                  category_id: {{ (book.category_id or "")|tojson }},
+                  cover_image: {{ book.cover_image|tojson }},
+                  description: {{ (book.description or "")|tojson }}
+                })'>Edit</button>
+
+                <form method="POST" action="/admin/books/{{ book.id }}/delete" onsubmit="return confirm('Apakah Anda yakin ingin menghapus buku ini?');" style="margin: 0;">
+                  <button type="submit" class="btn btn-danger btn-sm">Hapus</button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="addBookModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Tambah Buku Baru</h2>
+      <button class="close-btn" onclick="closeModal('addBookModal')">&times;</button>
+    </div>
+    <form method="POST" action="/admin/books/create" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label" for="title">Judul Buku</label>
+        <input type="text" id="title" name="title" class="form-control" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="author">Penulis / Pengarang</label>
+          <input type="text" id="author" name="author" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="publisher">Penerbit</label>
+          <input type="text" id="publisher" name="publisher" class="form-control" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="isbn">Nomor ISBN</label>
+          <input type="text" id="isbn" name="isbn" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="publication_year">Tahun Terbit</label>
+          <input type="number" id="publication_year" name="publication_year" class="form-control" value="2024" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="location">Lokasi Buku / Rak</label>
+          <input type="text" id="location" name="location" class="form-control" placeholder="Contoh: Rak TI-03" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="stock">Jumlah Stok</label>
+          <input type="number" id="stock" name="stock" class="form-control" min="1" value="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="category_id">Kategori Buku</label>
+        <select id="category_id" name="category_id" class="form-control">
+          <option value="">-- Tanpa Kategori --</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="cover_file">Unggah Berkas Gambar Cover (.jpg, .jpeg, .png, .webp)</label>
+        <input type="file" id="cover_file" name="cover_file" class="form-control" accept="image/*">
+        <small style="color: var(--text-muted); font-size: 0.8rem; display: block; margin-top: 0.25rem;">
+          Jika tidak diunggah, otomatis menggunakan cover abu-abu bertuliskan <em>"Cover Tidak Tersedia"</em>.
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="cover_image_url">Atau Masukkan URL Cover Gambar (Opsional)</label>
+        <input type="text" id="cover_image_url" name="cover_image_url" class="form-control" placeholder="Contoh: /static/images/clean_code.jpg">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="description">Deskripsi / Sinopsis</label>
+        <textarea id="description" name="description" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addBookModal')">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Buku</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="editBookModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>Ubah Informasi Buku</h2>
+      <button class="close-btn" onclick="closeModal('editBookModal')">&times;</button>
+    </div>
+    <form id="editBookForm" method="POST" action="" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label" for="edit_title">Judul Buku</label>
+        <input type="text" id="edit_title" name="title" class="form-control" required>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="edit_author">Penulis / Pengarang</label>
+          <input type="text" id="edit_author" name="author" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit_publisher">Penerbit</label>
+          <input type="text" id="edit_publisher" name="publisher" class="form-control" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="edit_isbn">Nomor ISBN</label>
+          <input type="text" id="edit_isbn" name="isbn" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit_publication_year">Tahun Terbit</label>
+          <input type="number" id="edit_publication_year" name="publication_year" class="form-control" required>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div class="form-group">
+          <label class="form-label" for="edit_location">Lokasi Buku / Rak</label>
+          <input type="text" id="edit_location" name="location" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="edit_stock">Jumlah Stok Total</label>
+          <input type="number" id="edit_stock" name="stock" class="form-control" min="1" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit_category_id">Kategori Buku</label>
+        <select id="edit_category_id" name="category_id" class="form-control">
+          <option value="">-- Tanpa Kategori --</option>
+          {% for cat in categories %}
+            <option value="{{ cat.id }}">{{ cat.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit_cover_file">Ganti Cover Gambar (.jpg, .jpeg, .png, .webp)</label>
+        <input type="file" id="edit_cover_file" name="cover_file" class="form-control" accept="image/*">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit_cover_image">Atau URL Cover Gambar</label>
+        <input type="text" id="edit_cover_image" name="cover_image_url" class="form-control">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="edit_description">Deskripsi / Sinopsis</label>
+        <textarea id="edit_description" name="description" class="form-control" rows="3"></textarea>
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editBookModal')">Batal</button>
+        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Kelola Anggota - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 700;">Daftar Pengguna & Anggota</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Kelola hak akses dan status keaktifan akun pengguna</p>
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nama Lengkap</th>
+          <th>Nama Pengguna</th>
+          <th>Email</th>
+          <th>Peran</th>
+          <th>Status</th>
+          <th>Tanggal Registrasi</th>
+          <th style="text-align: right;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>#{{ u.id }}</td>
+            <td><strong>{{ u.full_name }}</strong></td>
+            <td><code>{{ u.username }}</code></td>
+            <td>{{ u.email }}</td>
+            <td><span class="badge-role {{ u.role }}">{{ u.role }}</span></td>
+            <td>
+              {% if u.is_active %}
+                <span class="stock-tag stock-in">Aktif</span>
+              {% else %}
+                <span class="stock-tag stock-out">Nonaktif</span>
+              {% endif %}
+            </td>
+            <td>{{ u.created_at.strftime('%d-%m-%Y') }}</td>
+            <td style="text-align: right;">
+              {% if u.id != current_user.id %}
+                <form method="POST" action="/admin/users/{{ u.id }}/toggle-status" style="margin: 0; display: inline;">
+                  <button type="submit" class="btn btn-secondary btn-sm">
+                    {% if u.is_active %}Nonaktifkan{% else %}Aktifkan{% endif %}
+                  </button>
+                </form>
+              {% else %}
+                <span style="font-size: 0.8rem; color: var(--text-muted);">Akun Anda</span>
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Peminjaman Saya - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+    <div>
+      <h1 style="font-size: 1.5rem; font-weight: 700;">Riwayat & Status Peminjaman Saya</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Kelola buku yang sedang Anda pinjam dan kembalikan tepat waktu</p>
+    </div>
+    <a href="/" class="btn btn-secondary btn-sm">Pinjam Buku Lain</a>
+  </div>
+
+  {% if loans %}
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>Buku</th>
+            <th>Tanggal Pinjam</th>
+            <th>Batas Pengembalian</th>
+            <th>Status</th>
+            <th>Denda</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+            <tr>
+              <td>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                  <img src="{{ loan.book.cover_image }}" alt="{{ loan.book.title }}" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px;" onerror="this.src='/static/images/no_cover.svg';">
+                  <div>
+                    <a href="/books/{{ loan.book.id }}" style="font-weight: 600; color: inherit;">{{ loan.book.title }}</a>
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">{{ loan.book.location }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ loan.loan_date.strftime('%d-%m-%Y %H:%M') }}</td>
+              <td>
+                {{ loan.due_date.strftime('%d-%m-%Y') }}
+                {% if loan.is_overdue and loan.status == 'borrowed' %}
+                  <span style="display: block; font-size: 0.75rem; color: var(--danger); font-weight: 600;">(Terlambat)</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if loan.status == 'borrowed' %}
+                  {% if loan.is_overdue %}
+                    <span class="stock-tag stock-out">Jatuh Tempo</span>
+                  {% else %}
+                    <span class="stock-tag stock-in">Sedang Dipinjam</span>
+                  {% endif %}
+                {% else %}
+                  <span class="stock-tag" style="background: #e2e8f0; color: #334155;">Dikembalikan</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if loan.calculated_fine > 0 %}
+                  <span style="color: var(--danger); font-weight: 600;">Rp {{ "{:,}".format(loan.calculated_fine) }}</span>
+                {% else %}
+                  <span style="color: var(--success);">-</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if loan.status == 'borrowed' %}
+                  <form method="POST" action="/loans/{{ loan.id }}/return" onsubmit="return confirm('Apakah Anda yakin ingin mengembalikan buku ini?');">
+                    <button type="submit" class="btn btn-primary btn-sm">Kembalikan Buku</button>
+                  </form>
+                {% else %}
+                  <span style="font-size: 0.85rem; color: var(--text-muted);">
+                    {{ loan.return_date.strftime('%d-%m-%Y') if loan.return_date else '-' }}
+                  </span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 3rem 1rem;">
+      <p style="color: var(--text-muted); font-size: 1.05rem;">Anda belum memiliki riwayat peminjaman buku.</p>
+      <a href="/" class="btn btn-primary" style="margin-top: 1rem;">Cari Buku Sekarang</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

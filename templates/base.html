@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Perpustakaan Digital{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="navbar">
+    <div class="nav-container">
+      <a href="/" class="brand">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+          <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+        </svg>
+        Perpustakaan Digital
+      </a>
+
+      <nav>
+        <ul class="nav-menu">
+          <li><a href="/" class="nav-link">Katalog</a></li>
+          {% if current_user %}
+            <li><a href="/loans/my-loans" class="nav-link">Peminjaman Saya</a></li>
+            {% if current_user.role == "admin" %}
+              <li><a href="/admin/books" class="nav-link">Master Buku</a></li>
+              <li><a href="/admin/categories" class="nav-link">Kategori</a></li>
+              <li><a href="/admin/loans" class="nav-link">Transaksi</a></li>
+              <li><a href="/reports" class="nav-link">Laporan</a></li>
+              <li><a href="/admin/logs" class="nav-link">Log Aktivitas</a></li>
+            {% endif %}
+            <li>
+              <div class="user-badge">
+                <a href="/auth/profile" style="color: inherit; text-decoration: none;">
+                  {{ current_user.full_name }}
+                  <span class="badge-role {{ current_user.role }}">{{ current_user.role }}</span>
+                </a>
+              </div>
+            </li>
+            <li><a href="/auth/logout" class="btn btn-secondary btn-sm">Keluar</a></li>
+          {% else %}
+            <li><a href="/auth/login" class="nav-link">Masuk</a></li>
+            <li><a href="/auth/register" class="btn btn-primary btn-sm">Daftar</a></li>
+          {% endif %}
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% if msg %}
+      <div class="alert alert-success">{{ msg }}</div>
+    {% endif %}
+    {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer>
+    <p>&copy; 2026 Perpustakaan Digital. Sistem Informasi Peminjaman & Pengembalian Buku.</p>
+  </footer>
+
+  <script src="/static/js/main.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

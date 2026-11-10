@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Log Aktivitas Sistem - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+      <h1 style="font-size: 1.6rem; font-weight: 700;">Activity Logs (MongoDB)</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">Audit trail dan catatan aktivitas seluruh pengguna dan sistem</p>
+    </div>
+
+    <div style="font-size: 0.85rem; color: var(--text-muted);">
+      Menampilkan {{ logs|length }} aktivitas terbaru
+    </div>
+  </div>
+
+  <div class="table-responsive">
+    <table>
+      <thead>
+        <tr>
+          <th>Waktu (UTC)</th>
+          <th>Aksi</th>
+          <th>Pengguna</th>
+          <th>Peran</th>
+          <th>Alamat IP</th>
+          <th>Detail Informasi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for l in logs %}
+          <tr>
+            <td style="font-size: 0.8rem; white-space: nowrap;">{{ l.timestamp }}</td>
+            <td>
+              <code>{{ l.action }}</code>
+            </td>
+            <td><strong>{{ l.username }}</strong></td>
+            <td><span class="badge-role {{ l.role }}">{{ l.role }}</span></td>
+            <td><code style="font-size: 0.8rem;">{{ l.ip_address or '-' }}</code></td>
+            <td style="font-size: 0.8rem; max-width: 350px; word-break: break-all;">
+              {{ l.details|tojson if l.details else '-' }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

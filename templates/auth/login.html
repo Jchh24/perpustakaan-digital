@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Masuk - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h1 class="auth-title">Masuk ke Akun</h1>
+    <p class="auth-subtitle">Silakan masukkan nama pengguna dan kata sandi Anda</p>
+
+    <form method="POST" action="/auth/login">
+      <input type="hidden" name="next" value="{{ next or '/' }}">
+      
+      <div class="form-group">
+        <label class="form-label" for="username">Nama Pengguna</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Contoh: admin atau member" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Kata Sandi</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Masuk</button>
+    </form>
+
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+      Belum memiliki akun? <a href="/auth/register">Daftar sekarang</a>
+    </div>
+
+    <div style="margin-top: 1.5rem; padding: 0.75rem; background: #f8fafc; border: 1px dashed var(--border); border-radius: 6px; font-size: 0.8rem; color: #64748b;">
+      <strong>Akun Bawaan:</strong><br>
+      Admin: <code>admin</code> / <code>Admin123!</code><br>
+      Member: <code>member</code> / <code>Member123!</code>
+    </div>
+  </div>
+</div>
+{% endblock %}

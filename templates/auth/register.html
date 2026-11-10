@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar Anggota - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <h1 class="auth-title">Pendaftaran Anggota</h1>
+    <p class="auth-subtitle">Daftarkan akun untuk meminjam buku di perpustakaan</p>
+
+    <form method="POST" action="/auth/register">
+      <div class="form-group">
+        <label class="form-label" for="username">Nama Pengguna</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Minimal 3 karakter" required autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Alamat Email</label>
+        <input type="email" id="email" name="email" class="form-control" placeholder="nama@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="full_name">Nama Lengkap</label>
+        <input type="text" id="full_name" name="full_name" class="form-control" placeholder="Nama lengkap Anda" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Kata Sandi</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Minimal 6 karakter" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="confirm_password">Konfirmasi Kata Sandi</label>
+        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Ulangi kata sandi" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 1rem;">Daftar</button>
+    </form>
+
+    <div style="margin-top: 1.5rem; text-align: center; font-size: 0.9rem;">
+      Sudah memiliki akun? <a href="/auth/login">Masuk di sini</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

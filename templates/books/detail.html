@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}{{ book.title }} - Perpustakaan Digital{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+    <div style="flex: 0 0 280px; max-width: 100%;">
+      <div style="border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); box-shadow: var(--shadow);">
+        <img src="{{ book.cover_image }}" alt="{{ book.title }}" style="width: 100%; height: auto; display: block;" onerror="this.src='/static/images/no_cover.svg';">
+      </div>
+    </div>
+
+    <div style="flex: 1; min-width: 300px;">
+      <h1 style="font-size: 1.85rem; font-weight: 700; margin-bottom: 0.5rem;">{{ book.title }}</h1>
+      <p style="font-size: 1.1rem; color: var(--text-muted); margin-bottom: 1.25rem;">Oleh {{ book.author }}</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; padding: 1rem; background: #f8fafc; border-radius: 8px;">
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">ISBN</span>
+          <strong>{{ book.isbn }}</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Penerbit</span>
+          <strong>{{ book.publisher }} ({{ book.publication_year }})</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Lokasi Penempatan</span>
+          <strong style="color: var(--primary);">{{ book.location }}</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Kategori</span>
+          <strong>{{ book.category.name if book.category else 'Umum' }}</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Stok Total</span>
+          <strong>{{ book.stock }} eksemplar</strong>
+        </div>
+        <div>
+          <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">Status Ketersediaan</span>
+          {% if book.available_stock > 0 %}
+            <span class="stock-tag stock-in">Tersedia {{ book.available_stock }} eksemplar</span>
+          {% else %}
+            <span class="stock-tag stock-out">Stok Habis</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div style="margin-bottom: 1.5rem;">
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.1rem;">Sinopsis / Deskripsi</h3>
+        <p style="line-height: 1.7; color: #334155;">{{ book.description or 'Tidak ada deskripsi yang tersedia untuk buku ini.' }}</p>
+      </div>
+
+      <div style="border-top: 1px solid var(--border); padding-top: 1.5rem;">
+        {% if book.available_stock > 0 %}
+          <h3 style="margin-bottom: 0.75rem; font-size: 1.1rem;">Form Peminjaman Buku</h3>
+          <form method="POST" action="/loans/borrow" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+            <input type="hidden" name="book_id" value="{{ book.id }}">
+            
+            <div style="flex: 1; min-width: 160px;">
+              <label class="form-label" for="duration_days">Durasi Peminjaman</label>
+              <select name="duration_days" id="duration_days" class="form-control">
+                <option value="3">3 Hari</option>
+                <option value="7" selected>7 Hari (Standar)</option>
+                <option value="14">14 Hari</option>
+                <option value="21">21 Hari</option>
+                <option value="30">30 Hari</option>
+              </select>
+            </div>
+
+            <div style="flex: 2; min-width: 220px;">
+              <label class="form-label" for="notes">Catatan Peminjaman (Opsional)</label>
+              <input type="text" name="notes" id="notes" class="form-control" placeholder="Keperluan tugas, penelitian, dsb.">
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="height: 42px;">Pinjam Sekarang</button>
+          </form>
+        {% else %}
+          <div class="alert alert-danger" style="margin-bottom: 0;">
+            Maaf, seluruh eksemplar buku ini sedang dipinjam oleh anggota lain. Silakan periksa kembali di kemudian hari.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
